@@ -1,0 +1,34 @@
+version: "3"
+services:
+
+  app: &app
+    hostname: app
+    image: raianedev/rinha_api:1.0
+    ports:
+      - 8001:80
+
+  app1: 
+    <<: *app
+    container_name: app1
+    ports:
+      - 8002:80
+
+  app2: 
+    <<: *app
+    container_name: app2
+    ports:
+      - 8003:80
+
+  sqlite3:
+    container_name: sqlite3
+    image: keinos/sqlite3:latest
+    tty: true
+    restart: always
+    volumes:
+      - ./database/:/data
+    command: [ "sqlite3", ".open /data/rinha_api.sqlite" ]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.13"
+          memory: "140MB"
