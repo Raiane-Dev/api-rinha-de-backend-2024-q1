@@ -20,4 +20,4 @@ docker exec -it app bash
 
 ## Meta
 
-Raiane Arcaro Daros – [@YourTwitter](https://twitter.com/RaianeDev) – raiane.dev@gmail.com
+Raiane Arcaro Daros – [@MyTwitter](https://twitter.com/RaianeDev) – raiane.dev@gmail.com

@@ -4,8 +4,7 @@ version: "3"
 services:
 
   nginx:
-    build:
-      context : nginx:stable
+    image : nginx:1.25.3
     depends_on:
       - app
       - app1
@@ -25,7 +24,7 @@ services:
     hostname: app
     image: raianedev/rinha_api:1.0
     ports:
-      - 4001:80
+      - 4000:80
     deploy:
       resources:
         limits:
@@ -34,15 +33,15 @@ services:
 
   app1: 
     <<: *app
-    container_name: app1
+    hostname: app1
     ports:
-      - 4002:80
+      - 4001:80
 
   app2: 
     <<: *app
-    container_name: app2
+    hostname: app2
     ports:
-      - 4003:80
+      - 4002:80
 
   sqlite3:
     container_name: sqlite3
