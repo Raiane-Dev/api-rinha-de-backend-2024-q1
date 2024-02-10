@@ -1,7 +1,0 @@
-entryPoints:
-  web:
-    address: :9999
-
-providers:
-  file:
-    directory: /path/to/dynamic/conf

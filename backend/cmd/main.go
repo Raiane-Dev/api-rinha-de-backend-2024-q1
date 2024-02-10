@@ -2,10 +2,11 @@ package main
 
 import (
 	"log"
-	"os"
 	"rinha_api/backend/config"
 	"rinha_api/backend/httpd/route"
 )
+
+const SERVER_PORT = ":80"
 
 func init() {
 	if err := config.ConnectInstance(); err != nil {
@@ -19,8 +20,8 @@ func main() {
 
 	app := route.New().Routes()
 
-	if err := app.Listen(os.Getenv("SERVER_PORT")); err != nil {
-		log.Fatalf("Error listening on port %s: %s", os.Getenv("SERVER_PORT"), err)
+	if err := app.Listen(SERVER_PORT); err != nil {
+		log.Fatalf("Error listening on port %s: %s", SERVER_PORT, err)
 	}
 
 }

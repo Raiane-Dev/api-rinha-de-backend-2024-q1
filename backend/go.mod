@@ -1,6 +1,6 @@
 module rinha_api/backend
 
-go 1.21.6
+go 1.21
 
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
