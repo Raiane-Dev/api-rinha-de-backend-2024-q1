@@ -10,5 +10,5 @@ services:
       dockerfile: dockerfile
     image: raianedev/rinha_api:1.0
     volumes:
-      - ./database/rinha_api.sqlite:/data/rinha_api.sqlite
+      - ./database/:/data/
     restart: always

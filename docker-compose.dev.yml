@@ -18,7 +18,7 @@ services:
     tty: true
     restart: always
     volumes:
-      - ./database/rinha_api.sqlite:/data/rinha_api.sqlite
+      - ./database/:/data/
     network_mode: host
     command: [ "sqlite3", ".open /data/rinha_api.sqlite" ]
     deploy:

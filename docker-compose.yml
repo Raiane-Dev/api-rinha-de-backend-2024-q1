@@ -26,7 +26,7 @@ services:
     hostname: app
     image: raianedev/rinha_api:1.0
     volumes:
-      - ./database/rinha_api.sqlite:/data/rinha_api.sqlite
+      - ./database/:/data/
     ports:
       - 4000:80
     deploy:
@@ -58,7 +58,7 @@ services:
     tty: true
     restart: always
     volumes:
-      - ./database/rinha_api.sqlite:/data/rinha_api.sqlite
+      - ./database/:/data/
     command: [ "sqlite3", ".open /data/rinha_api.sqlite" ]
     deploy:
       resources:

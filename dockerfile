@@ -29,7 +29,6 @@ WORKDIR /usr/local/bin/app
 
 RUN apk update && apk add build-base gcc
 
-COPY ./database/schemas /data/schemas
 COPY --from=build /bin/main .
 
 
