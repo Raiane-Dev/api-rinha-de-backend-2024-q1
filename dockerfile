@@ -30,7 +30,7 @@ WORKDIR /usr/local/bin/app
 RUN apk update && apk add build-base gcc
 
 COPY --from=build /bin/main .
-
+COPY ./database/schemas /data/schemas
 
 EXPOSE 443/tcp
 
