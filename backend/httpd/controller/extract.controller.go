@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"log"
 	"net/http"
 	"rinha_api/backend/entity/io/output"
 	"rinha_api/backend/model"
+	"rinha_api/backend/util/logger"
 	"strconv"
 	"time"
 
@@ -15,6 +15,7 @@ func ConsultTransaction(c *fiber.Ctx) (_ error) {
 
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
+		logger.Error("id not number", err)
 		c.
 			Status(http.StatusBadRequest).
 			WriteString("ID not number")
@@ -27,6 +28,7 @@ func ConsultTransaction(c *fiber.Ctx) (_ error) {
 
 	client, err = client.FindBy("id = ?", id)
 	if err != nil {
+		logger.Error("not found client", err)
 		c.
 			Status(http.StatusNotFound).
 			WriteString("Not found client")
@@ -35,9 +37,9 @@ func ConsultTransaction(c *fiber.Ctx) (_ error) {
 
 	transactions, err := transaction.FindMany("cliente_id = ?", id)
 	if err != nil {
-		log.Println("err in request", err)
+		logger.Error("not found transaction", err)
 		c.
-			Status(http.StatusNotFound).
+			Status(http.StatusBadRequest).
 			WriteString("Not found transactions")
 		return
 	}

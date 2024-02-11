@@ -1,8 +1,8 @@
 -- +migrate Up
-INSERT INTO clientes (id, limite, saldo_inicial)
-VALUES
-    (1, 100000, 0),
-    (2, 80000, 0),
-    (3, 1000000, 0),
-    (4, 10000000, 0),
-    (5, 500000, 0);
+  INSERT INTO clientes (nome, limite)
+  VALUES
+    ('o barato sai caro', 1000 * 100),
+    ('zan corp ltda', 800 * 100),
+    ('les cruders', 10000 * 100),
+    ('padaria joia de cocaia', 100000 * 100),
+    ('kid mais', 5000 * 100);

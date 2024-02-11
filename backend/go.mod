@@ -7,6 +7,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/rs/zerolog v1.32.0
 	github.com/rubenv/sql-migrate v1.6.1
 )
 

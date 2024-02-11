@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"rinha_api/backend/entity/io/input"
 	"rinha_api/backend/entity/io/output"
 	"rinha_api/backend/model"
+	"rinha_api/backend/util/logger"
 	"strconv"
 
 	"github.com/go-playground/validator"
@@ -23,7 +24,7 @@ func SendTransaction(c *fiber.Ctx) (_ error) {
 	)
 
 	if err := c.BodyParser(&transaction_input); err != nil {
-		log.Println(err)
+		logger.Error(fmt.Sprintf("invalid json body %+v", transaction_input), err)
 		c.
 			Status(http.StatusBadRequest).
 			WriteString("Invalid json body")
@@ -32,13 +33,14 @@ func SendTransaction(c *fiber.Ctx) (_ error) {
 
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
+		logger.Error("id not number. id: "+c.Params("id"), err)
 		c.
 			Status(http.StatusBadRequest).
 			WriteString("ID not number")
 	}
 
 	if err := validate.Struct(&transaction_input); err != nil {
-		log.Println(err)
+		logger.Error("validation failed", err)
 		c.
 			Status(http.StatusBadRequest).
 			WriteString("Invalid data")
@@ -47,6 +49,7 @@ func SendTransaction(c *fiber.Ctx) (_ error) {
 
 	client, err = client.FindBy("id = ?", id)
 	if err != nil {
+		logger.Error("not found client", err)
 		c.
 			Status(http.StatusNotFound).
 			WriteString("Not found client")
@@ -54,7 +57,8 @@ func SendTransaction(c *fiber.Ctx) (_ error) {
 	}
 
 	if transaction_input.Type == "d" {
-		if (client.Balance + transaction_input.Value) > client.Limit {
+		if (client.Balance - transaction_input.Value) >= -client.Limit {
+			logger.Error(fmt.Sprintf("debit err | balance + value = %d", client.Balance+transaction_input.Value), err)
 			c.
 				Status(http.StatusUnprocessableEntity).
 				WriteString("Limit exceeded")
@@ -62,28 +66,28 @@ func SendTransaction(c *fiber.Ctx) (_ error) {
 		}
 	}
 
-	{
-		new_transaction := model.TransactionEntity{
-			ClientID:    id,
-			Type:        transaction_input.Type,
-			Value:       transaction_input.Value,
-			Description: transaction_input.Description,
-		}
-		if err := new_transaction.Create(); err != nil {
-			c.
-				Status(http.StatusBadRequest).
-				WriteString("Unable to complete the transaction")
-			return
-		}
+	new_transaction := model.TransactionEntity{
+		ClientID:    id,
+		Type:        transaction_input.Type,
+		Value:       transaction_input.Value,
+		Description: transaction_input.Description,
+	}
+	if err := new_transaction.Create(); err != nil {
+		logger.Error("not create transaction", err)
+		c.
+			Status(http.StatusBadGateway).
+			WriteString("Unable to complete the transaction")
+		return
+	}
 
-		client.Balance = client.Balance + transaction_input.Value
-		if err := client.Update("id = ?", id); err != nil {
-			log.Println(err)
-			c.
-				Status(http.StatusBadRequest).
-				WriteString("Unable to complete the transaction")
-			return
-		}
+	client.Balance = client.Balance + transaction_input.Value
+	if err := client.Update("id = ?", id); err != nil {
+		logger.Error("not update client", err)
+
+		c.
+			Status(http.StatusBadGateway).
+			WriteString("Unable to complete the transaction")
+		return
 	}
 
 	return c.Status(http.StatusOK).JSON(output.TransactionOutput{

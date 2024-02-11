@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"log"
+	"rinha_api/backend/util/logger"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -15,7 +15,7 @@ var (
 )
 
 func ConnectInstance() (err error) {
-	DatabaseInstance, err = sqlx.Open("sqlite3", "/data/rinha_api.sqlite")
+	DatabaseInstance, err = sqlx.Open("sqlite3", "/data/rinha_api.sqlite?_journal=WAL&_timeout=5000&_fk=true")
 	if err != nil {
 		return
 	}
@@ -34,11 +34,11 @@ func ExecMigration() {
 
 	n, err := migrate.Exec(DatabaseInstance.DB, "sqlite3", migrations, migrate.Up)
 	if err != nil {
-		log.Fatalf("Error applying migrations: %v", err)
+		logger.Error("Error applying migrations: %v", err)
 	}
 
 	if n != 0 {
-		log.Fatal(fmt.Sprintf("Applied %d migration", n))
+		logger.Info(fmt.Sprintf("Applied %d migration", n))
 	}
 
 }

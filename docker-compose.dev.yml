@@ -10,7 +10,8 @@ services:
     tty: true
     stdin_open: true
     restart: always
-    network_mode: host
+    ports: 
+      - 9999:80
 
   sqlite3:
     container_name: sqlite3
