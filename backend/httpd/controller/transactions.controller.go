@@ -57,7 +57,7 @@ func SendTransaction(c *fiber.Ctx) (_ error) {
 	}
 
 	if transaction_input.Type == "d" {
-		if (client.Balance - transaction_input.Value) >= -client.Limit {
+		if (client.Balance + -transaction_input.Value) < -client.Limit {
 			logger.Error(fmt.Sprintf("debit err | balance + value = %d", client.Balance+transaction_input.Value), err)
 			c.
 				Status(http.StatusUnprocessableEntity).
@@ -66,6 +66,7 @@ func SendTransaction(c *fiber.Ctx) (_ error) {
 		}
 	}
 
+	client.Balance = client.Balance + transaction_input.Value
 	new_transaction := model.TransactionEntity{
 		ClientID:    id,
 		Type:        transaction_input.Type,
@@ -80,7 +81,6 @@ func SendTransaction(c *fiber.Ctx) (_ error) {
 		return
 	}
 
-	client.Balance = client.Balance + transaction_input.Value
 	if err := client.Update("id = ?", id); err != nil {
 		logger.Error("not update client", err)
 
