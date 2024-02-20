@@ -45,13 +45,12 @@ func FindMany[T any](query *entity.Query) (data T, err error) {
 }
 
 func Insert(query *entity.Query) (res sql.Result, err error) {
-	qt := strings.Repeat("?,", len(query.Args))
 
 	sql := fmt.Sprintf(
 		`INSERT INTO %s (%s) VALUES (%s)`,
 		query.Table,
 		strings.Join(query.Columns, ","),
-		qt[:len(qt)-1],
+		query.Values,
 	)
 
 	res, err = config.DatabaseInstance.Exec(

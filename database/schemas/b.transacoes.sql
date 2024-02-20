@@ -1,6 +1,5 @@
 -- +migrate Up
 CREATE TABLE IF NOT EXISTS transacoes (
-        id INTEGER PRIMARY KEY,
         cliente_id INTEGER,
         tipo CHAR(1),
         valor INTEGER DEFAULT 0,

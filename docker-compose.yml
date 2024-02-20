@@ -4,11 +4,10 @@ version: "3"
 services:
 
   nginx:
-    image : nginx:1.25.3
+    image : nginx:1.25-alpine
     depends_on:
       - app
       - app01
-      - app02
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
@@ -17,53 +16,26 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.17"
-          memory: "10MB"
-    networks:
-      - loadbalancing
+          cpus: "0.5"
+          memory: "50MB"
+    network_mode: host
 
   app: &app
     hostname: app
     image: raianedev/rinha_api:1.0
     volumes:
       - ./database:/data
-    ports:
-      - 8080:80
+    environment:
+      - SERVER_PORT=9990
     deploy:
       resources:
         limits:
-          cpus: "0.6"
-          memory: "200MB"
-    networks:
-      - loadbalancing
+          cpus: "0.5"
+          memory: "250MB"
+    network_mode: host
 
   app01: 
     <<: *app
     hostname: app01
-    ports:
-      - 8081:80
-
-  app02: 
-    <<: *app
-    hostname: app02
-    ports:
-      - 8082:80
-
-  sqlite3:
-    container_name: sqlite3
-    image: keinos/sqlite3:latest
-    tty: true
-    restart: always
-    volumes:
-      - ./database/rinha_api.sqlite:/data/rinha_api.sqlite
-    command: [ "sqlite3", ".open /data/rinha_api.sqlite" ]
-    deploy:
-      resources:
-        limits:
-          cpus: "0.13"
-          memory: "140MB"
-    networks:
-      - loadbalancing
-
-networks:
-  loadbalancing:
+    environment:
+      - SERVER_PORT=9991

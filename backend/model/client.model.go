@@ -10,7 +10,7 @@ type (
 	ClientEntity schema.ClientSchema
 )
 
-func (data *ClientEntity) Create() (err error) {
+func (data ClientEntity) Create() (err error) {
 	sql := &entity.Query{
 		Table:   "clientes",
 		Columns: []string{"limite", "saldo", "saldo_inicial"},
@@ -22,7 +22,7 @@ func (data *ClientEntity) Create() (err error) {
 	return
 }
 
-func (data *ClientEntity) Update(where string, args ...any) (err error) {
+func (data ClientEntity) Update(where string, args ...any) (err error) {
 	sql := &entity.Query{
 		Table:     "clientes",
 		Condition: where,

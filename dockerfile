@@ -27,7 +27,7 @@ FROM alpine:latest as finally
 
 WORKDIR /usr/local/bin/app
 
-RUN apk update && apk add build-base gcc
+RUN apk update
 
 COPY --from=build /bin/main .
 COPY ./database/schemas /data/schemas

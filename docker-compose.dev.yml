@@ -10,20 +10,11 @@ services:
     tty: true
     stdin_open: true
     restart: always
-    ports: 
-      - 9999:80
-
-  sqlite3:
-    container_name: sqlite3
-    image: keinos/sqlite3:latest
-    tty: true
-    restart: always
-    volumes:
-      - ./database/:/data/
-    network_mode: host
-    command: [ "sqlite3", ".open /data/rinha_api.sqlite" ]
+    environment:
+      - SERVER_PORT=9999
     deploy:
       resources:
         limits:
-          cpus: "0.13"
-          memory: "140MB"
+          cpus: "1.5"
+          memory: "550MB"
+    network_mode: host

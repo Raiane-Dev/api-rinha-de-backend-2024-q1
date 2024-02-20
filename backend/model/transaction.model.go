@@ -10,7 +10,7 @@ type (
 	TransactionEntity schema.TransactionSchema
 )
 
-func (data *TransactionEntity) Create() (err error) {
+func (data TransactionEntity) Create() (err error) {
 	sql := &entity.Query{
 		Table:   "transacoes",
 		Columns: []string{"tipo", "cliente_id", "valor", "descricao"},

@@ -1,17 +1,17 @@
 package config
 
 import (
-	"fmt"
-	"rinha_api/backend/util/logger"
+	"io/ioutil"
+	"path/filepath"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
-
-	migrate "github.com/rubenv/sql-migrate"
 )
 
 var (
 	DatabaseInstance *sqlx.DB
+	DatabaseErr      = make(chan error)
 )
 
 func ConnectInstance() (err error) {
@@ -26,19 +26,33 @@ func ConnectInstance() (err error) {
 	return
 }
 
-func ExecMigration() {
+func ExecMigration() (err error) {
+	dir := "/data/schemas/"
 
-	migrations := &migrate.FileMigrationSource{
-		Dir: "/data/schemas/",
-	}
-
-	n, err := migrate.Exec(DatabaseInstance.DB, "sqlite3", migrations, migrate.Up)
+	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		logger.Error("Error applying migrations: %v", err)
+		return
 	}
 
-	if n != 0 {
-		logger.Info(fmt.Sprintf("Applied %d migration", n))
+	for _, file := range files {
+		if !file.IsDir() {
+			filePath := filepath.Join(dir, file.Name())
+
+			content, err := ioutil.ReadFile(filePath)
+			if err != nil {
+				panic(err)
+			}
+
+			slice_content := strings.Split(string(content), "\n--")
+			for i := range slice_content {
+				if _, err = DatabaseInstance.Exec(slice_content[i]); err != nil {
+					panic(err)
+				}
+
+			}
+
+		}
 	}
 
+	return
 }

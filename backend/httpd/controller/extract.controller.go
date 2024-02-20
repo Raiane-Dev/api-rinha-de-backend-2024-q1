@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
 	"rinha_api/backend/entity/io/output"
 	"rinha_api/backend/model"
@@ -8,39 +9,35 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/valyala/fasthttp"
 )
 
-func ConsultTransaction(c *fiber.Ctx) (_ error) {
+var (
+	transaction model.TransactionEntity
+)
 
-	id, err := strconv.Atoi(c.Params("id"))
+func ConsultTransaction(ctx *fasthttp.RequestCtx) {
+	var (
+		client model.ClientEntity
+	)
+	id, err := strconv.Atoi(ctx.UserValue("id").(string))
 	if err != nil {
 		logger.Error("id not number", err)
-		c.
-			Status(http.StatusBadRequest).
-			WriteString("ID not number")
+		ctx.SetStatusCode(http.StatusBadRequest)
+		return
 	}
-
-	var (
-		client      model.ClientEntity
-		transaction model.TransactionEntity
-	)
 
 	client, err = client.FindBy("id = ?", id)
 	if err != nil {
 		logger.Error("not found client", err)
-		c.
-			Status(http.StatusNotFound).
-			WriteString("Not found client")
+		ctx.SetStatusCode(http.StatusNotFound)
 		return
 	}
 
 	transactions, err := transaction.FindMany("cliente_id = ?", id)
 	if err != nil {
 		logger.Error("not found transaction", err)
-		c.
-			Status(http.StatusBadRequest).
-			WriteString("Not found transactions")
+		ctx.SetStatusCode(http.StatusBadRequest)
 		return
 	}
 
@@ -53,5 +50,8 @@ func ConsultTransaction(c *fiber.Ctx) (_ error) {
 		LatestTransaction: transactions,
 	}
 
-	return c.Status(http.StatusOK).JSON(out)
+	resp_json, _ := json.Marshal(out)
+	ctx.SetContentType("application/json")
+	ctx.SetStatusCode(http.StatusOK)
+	ctx.Response.SetBody(resp_json)
 }

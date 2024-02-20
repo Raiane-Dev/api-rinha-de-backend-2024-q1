@@ -2,12 +2,14 @@ package main
 
 import (
 	"log"
+	"os"
 	"rinha_api/backend/config"
-	"rinha_api/backend/httpd/route"
+	"rinha_api/backend/httpd/controller"
 	"rinha_api/backend/util/logger"
-)
 
-const SERVER_PORT = ":80"
+	"github.com/fasthttp/router"
+	"github.com/valyala/fasthttp"
+)
 
 func init() {
 	logger.Init()
@@ -21,10 +23,30 @@ func init() {
 
 func main() {
 
-	app := route.New().Routes()
+	go func() {
+		select {
+		case err := <-config.DatabaseErr:
+			logger.Error("connection refused", err)
+			config.DatabaseInstance.Exec("VACUUM;")
+			config.DatabaseInstance.Close()
+			config.ConnectInstance()
+			logger.Info("tratament go")
+		}
+	}()
 
-	if err := app.Listen(SERVER_PORT); err != nil {
-		log.Fatalf("Error listening on port %s: %s", SERVER_PORT, err)
+	r := router.New()
+	r.POST("/clientes/{id}/transacoes", controller.SendTransaction)
+	r.GET("/clientes/{id}/extrato", controller.ConsultTransaction)
+
+	s := &fasthttp.Server{
+		Handler:          r.Handler,
+		Concurrency:      fasthttp.DefaultConcurrency,
+		DisableKeepalive: true,
+	}
+
+	port := os.Getenv("SERVER_PORT")
+	if err := s.ListenAndServe(":" + port); err != nil {
+		log.Fatalf("Error listening on port %s: %s", port, err)
 	}
 
 }
