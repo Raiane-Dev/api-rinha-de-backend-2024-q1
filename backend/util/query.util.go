@@ -5,19 +5,18 @@ import (
 	"fmt"
 	"rinha_api/backend/config"
 	"rinha_api/backend/entity"
-	"strings"
 )
 
-func FindBy[T any](query *entity.Query) (data T, err error) {
+func FindBy[T any](query entity.Query) (data T, err error) {
 
 	sql := fmt.Sprintf(
 		"SELECT %s FROM %s WHERE %s",
-		strings.Join(query.Columns, ","),
+		query.Columns,
 		query.Table,
 		query.Condition,
 	)
 
-	config.DatabaseInstance.Get(
+	config.ReaderDB.Get(
 		&data,
 		sql,
 		query.Args[:]...,
@@ -26,16 +25,16 @@ func FindBy[T any](query *entity.Query) (data T, err error) {
 	return
 }
 
-func FindMany[T any](query *entity.Query) (data T, err error) {
+func FindMany[T any](query entity.Query) (data T, err error) {
 
 	sql := fmt.Sprintf(
 		"SELECT %s FROM %s WHERE %s",
-		strings.Join(query.Columns, ","),
+		query.Columns,
 		query.Table,
 		query.Condition,
 	)
 
-	err = config.DatabaseInstance.Select(
+	err = config.ReaderDB.Select(
 		&data,
 		sql,
 		query.Args[:]...,
@@ -44,24 +43,30 @@ func FindMany[T any](query *entity.Query) (data T, err error) {
 	return
 }
 
-func Insert(query *entity.Query) (res sql.Result, err error) {
+func Insert(query entity.Query) (res sql.Result, err error) {
+	tx, err := config.WriterDB.Beginx()
+	defer tx.Rollback()
 
 	sql := fmt.Sprintf(
 		`INSERT INTO %s (%s) VALUES (%s)`,
 		query.Table,
-		strings.Join(query.Columns, ","),
+		query.Columns,
 		query.Values,
 	)
 
-	res, err = config.DatabaseInstance.Exec(
+	res, err = tx.Exec(
 		sql,
 		query.Args[:]...,
 	)
 
+	err = tx.Commit()
+
 	return
 }
 
-func Update(query *entity.Query) (res sql.Result, err error) {
+func Update(query entity.Query) (res sql.Result, err error) {
+	tx, err := config.WriterDB.Beginx()
+	defer tx.Rollback()
 
 	sql := fmt.Sprintf(
 		"UPDATE %s SET %s WHERE %s",
@@ -70,10 +75,12 @@ func Update(query *entity.Query) (res sql.Result, err error) {
 		query.Condition,
 	)
 
-	res, err = config.DatabaseInstance.Exec(
+	res, err = tx.Exec(
 		sql,
 		query.Args[:]...,
 	)
+
+	err = tx.Commit()
 
 	return
 }

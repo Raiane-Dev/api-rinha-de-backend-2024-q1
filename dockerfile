@@ -27,8 +27,6 @@ FROM alpine:latest as finally
 
 WORKDIR /usr/local/bin/app
 
-RUN apk update
-
 COPY --from=build /bin/main .
 COPY ./database/schemas /data/schemas
 

@@ -2,15 +2,12 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"rinha_api/backend/config"
 	"rinha_api/backend/entity/io/input"
 	"rinha_api/backend/entity/io/output"
 	"rinha_api/backend/model"
-	"rinha_api/backend/util/logger"
-	"strconv"
-	"sync"
 
 	"github.com/go-playground/validator"
 	"github.com/valyala/fasthttp"
@@ -22,42 +19,35 @@ var (
 
 func SendTransaction(ctx *fasthttp.RequestCtx) {
 	var (
-		mu               sync.Mutex
-		wg               sync.WaitGroup
+		// mu               sync.Mutex
+		// wg               sync.WaitGroup
 		transactionInput input.TransactionInput
-
-		client model.ClientEntity
 	)
-	wg.Add(1)
+	// wg.Add(1)
 	if err := json.Unmarshal(ctx.PostBody(), &transactionInput); err != nil {
-		logger.Error(fmt.Sprintf("invalid json body %+v", transactionInput), err)
+		log.Printf("invalid json body %+v | err %+v", transactionInput, err)
 		ctx.SetStatusCode(http.StatusBadRequest)
 		return
 	}
 
-	id, err := strconv.Atoi(ctx.UserValue("id").(string))
-	if err != nil {
-		logger.Error("id not number. id: "+string(ctx.UserValue("id").(string)), err)
-		ctx.SetStatusCode(http.StatusBadRequest)
-		return
-	}
-
+	id := ctx.UserValue("id").(string)
 	if err := validate.Struct(&transactionInput); err != nil {
-		logger.Error("validation failed", err)
+		log.Println("validation failed", err)
 		ctx.SetStatusCode(http.StatusBadRequest)
 		return
 	}
 
-	client, err = client.FindBy("id = ?", id)
+	client, err := model.FindByClient("id = ?", id)
 	if err != nil {
-		logger.Error("not found client", err)
+		log.Println("not found client", err)
+		config.ErrReaderDB <- err
 		ctx.SetStatusCode(http.StatusNotFound)
 		return
 	}
 
 	if transactionInput.Type == "d" {
 		if (client.Balance + -transactionInput.Value) < -client.Limit {
-			logger.Error(fmt.Sprintf("debit err | balance + value = %d", client.Balance+transactionInput.Value), err)
+			log.Printf("debit err | balance + value = %d | err %+v", client.Balance+transactionInput.Value, err)
 			ctx.SetStatusCode(http.StatusUnprocessableEntity)
 			return
 		}
@@ -65,39 +55,37 @@ func SendTransaction(ctx *fasthttp.RequestCtx) {
 
 	client.Balance = client.Balance + transactionInput.Value
 	newTransaction := model.TransactionEntity{
-		ClientID:    id,
 		Type:        transactionInput.Type,
 		Value:       transactionInput.Value,
 		Description: transactionInput.Description,
 	}
 
-	go func() {
-		mu.Lock()
-		defer mu.Unlock()
-		defer wg.Done()
+	// go func() {
+	// mu.Lock()
+	// defer mu.Unlock()
+	// defer wg.Done()
 
-		if err := newTransaction.Create(); err != nil {
-			config.DatabaseErr <- err
-			logger.Error("not create transaction", err)
-			ctx.SetStatusCode(http.StatusBadGateway)
-			return
-		}
-
-		if err := client.Update("id = ?", id); err != nil {
-			config.DatabaseErr <- err
-			logger.Error("not update client", err)
-			ctx.SetStatusCode(http.StatusBadGateway)
-			return
-		}
-
-	}()
-	resp := output.TransactionOutput{
-		Limit:   client.Limit,
-		Balance: client.Balance,
+	if err := newTransaction.Create(); err != nil {
+		log.Println("not create transaction", err)
+		config.ErrWriterDB <- err
+		ctx.SetStatusCode(http.StatusBadGateway)
+		return
 	}
 
-	wg.Wait()
-	resp_json, _ := json.Marshal(resp)
+	if err := client.Update("id = ?", id); err != nil {
+		log.Println("not update client", err)
+		config.ErrWriterDB <- err
+		ctx.SetStatusCode(http.StatusBadGateway)
+		return
+	}
+
+	// }()
+
+	// wg.Wait()
+	resp_json, _ := json.Marshal(output.TransactionOutput{
+		Limit:   client.Limit,
+		Balance: client.Balance,
+	})
 	ctx.SetContentType("application/json")
 	ctx.SetStatusCode(http.StatusOK)
 	ctx.Response.SetBody(resp_json)

@@ -1,20 +1,31 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"rinha_api/backend/config"
 	"rinha_api/backend/httpd/controller"
-	"rinha_api/backend/util/logger"
+
+	_ "net/http/pprof"
+	"runtime/pprof"
 
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
 )
 
 func init() {
-	logger.Init()
+	var (
+		err error
+	)
 
-	if err := config.ConnectInstance(); err != nil {
+	config.WriterDB, err = config.ConnectInstance()
+	if err != nil {
+		log.Fatalf("err connect db %s", err.Error())
+	}
+
+	config.ReaderDB, err = config.ConnectInstance()
+	if err != nil {
 		log.Fatalf("err connect db %s", err.Error())
 	}
 
@@ -22,17 +33,42 @@ func init() {
 }
 
 func main() {
+	defer func() {
+		f, _ := os.Create("profile.pprof")
+		defer f.Close()
+		pprof.WriteHeapProfile(f)
+
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	}()
 
 	go func() {
 		select {
-		case err := <-config.DatabaseErr:
-			logger.Error("connection refused", err)
-			config.DatabaseInstance.Exec("VACUUM;")
-			config.DatabaseInstance.Close()
-			config.ConnectInstance()
-			logger.Info("tratament go")
+		case err := <-config.ErrWriterDB:
+
+			log.Println("connection refused for instance WriterDB", err)
+			config.WriterDB.Exec("VACUUM;")
+			config.WriterDB.Close()
+			config.WriterDB, err = config.ConnectInstance()
+			log.Printf("retry connection, err: %s", err)
+
+		case err := <-config.ErrReaderDB:
+			log.Println("connection refused for instance ReaderDB", err)
+			config.ReaderDB.Exec("VACUUM;")
+			config.ReaderDB.Close()
+			config.ReaderDB, err = config.ConnectInstance()
+			log.Printf("retry connection, err: %s", err)
+
 		}
+
 	}()
+
+	// if os.Getenv("DEBUG") == "debug" {
+	// go func() {
+	// log.Println(http.ListenAndServe("localhost:6060", nil))
+	// }()
+	// }
 
 	r := router.New()
 	r.POST("/clientes/{id}/transacoes", controller.SendTransaction)

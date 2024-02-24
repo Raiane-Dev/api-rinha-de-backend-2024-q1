@@ -11,38 +11,23 @@ type (
 )
 
 func (data TransactionEntity) Create() (err error) {
-	sql := &entity.Query{
+	_, err = util.Insert(entity.Query{
 		Table:   "transacoes",
-		Columns: []string{"tipo", "cliente_id", "valor", "descricao"},
+		Columns: "tipo, cliente_id, valor, descricao",
 		Values:  "?, ?, ?, ?",
 		Args:    []any{data.Type, data.ClientID, data.Value, data.Description},
-	}
-	_, err = util.Insert(sql)
+	})
 
 	return
 }
 
-func (TransactionEntity) FindMany(where string, args ...any) (accounts []TransactionEntity, err error) {
-	query := &entity.Query{
+func FindManyTransactions(where string, args ...any) (accounts []TransactionEntity, err error) {
+	accounts, err = util.FindMany[[]TransactionEntity](entity.Query{
 		Table:     "transacoes",
-		Columns:   []string{"*"},
+		Columns:   "*",
 		Condition: where,
 		Args:      args,
-	}
-	accounts, err = util.FindMany[[]TransactionEntity](query)
-
-	return
-}
-
-func (TransactionEntity) FindBy(where string, args ...any) (data TransactionEntity, err error) {
-	query := &entity.Query{
-		Table:     "transacoes",
-		Columns:   []string{"*"},
-		Condition: where,
-		Args:      args,
-	}
-
-	data, err = util.FindBy[TransactionEntity](query)
+	})
 
 	return
 }

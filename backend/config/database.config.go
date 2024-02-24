@@ -10,16 +10,19 @@ import (
 )
 
 var (
-	DatabaseInstance *sqlx.DB
-	DatabaseErr      = make(chan error)
+	ReaderDB *sqlx.DB
+	WriterDB *sqlx.DB
+
+	ErrWriterDB = make(chan error)
+	ErrReaderDB = make(chan error)
 )
 
-func ConnectInstance() (err error) {
-	DatabaseInstance, err = sqlx.Open("sqlite3", "/data/rinha_api.sqlite?_journal=WAL&_timeout=5000&_fk=true")
+func ConnectInstance() (connection *sqlx.DB, err error) {
+	connection, err = sqlx.Open("sqlite3", "/data/rinha_api.sqlite?_journal=WAL&_timeout=5000&_fk=true")
 	if err != nil {
 		return
 	}
-	if err = DatabaseInstance.Ping(); err != nil {
+	if err = connection.Ping(); err != nil {
 		return
 	}
 
@@ -45,7 +48,7 @@ func ExecMigration() (err error) {
 
 			slice_content := strings.Split(string(content), "\n--")
 			for i := range slice_content {
-				if _, err = DatabaseInstance.Exec(slice_content[i]); err != nil {
+				if _, err = WriterDB.Exec(slice_content[i]); err != nil {
 					panic(err)
 				}
 

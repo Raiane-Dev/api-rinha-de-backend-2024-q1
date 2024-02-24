@@ -12,3 +12,11 @@ services:
     volumes:
       - ./database/:/data/
     restart: always
+    environment:
+      - SERVER_PORT=9999
+    network_mode: host
+    deploy:
+      resources:
+        limits:
+          cpus: ".5"
+          memory: "200MB"

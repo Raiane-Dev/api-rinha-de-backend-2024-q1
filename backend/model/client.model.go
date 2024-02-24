@@ -11,50 +11,37 @@ type (
 )
 
 func (data ClientEntity) Create() (err error) {
-	sql := &entity.Query{
+
+	_, err = util.Insert(entity.Query{
 		Table:   "clientes",
-		Columns: []string{"limite", "saldo", "saldo_inicial"},
-		Values:  "?, ?",
+		Columns: "limite, saldo, saldo_inicial",
+		Values:  "?, ?, ?",
 		Args:    []any{data.Limit, data.Balance, data.OpeningBalance},
-	}
-	_, err = util.Insert(sql)
+	})
 
 	return
 }
 
 func (data ClientEntity) Update(where string, args ...any) (err error) {
-	sql := &entity.Query{
+
+	_, err = util.Update(entity.Query{
 		Table:     "clientes",
 		Condition: where,
 		Values:    "limite = ?, saldo = ?, saldo_inicial = ?",
 		Args:      append([]any{data.Limit, data.Balance, data.OpeningBalance}, args...),
-	}
-	_, err = util.Update(sql)
+	})
 
 	return
 }
 
-func (ClientEntity) FindMany(where string, args ...any) (accounts []ClientEntity, err error) {
-	query := &entity.Query{
+func FindByClient(where string, args ...any) (data ClientEntity, err error) {
+
+	data, err = util.FindBy[ClientEntity](entity.Query{
 		Table:     "clientes",
-		Columns:   []string{"*"},
+		Columns:   "*",
 		Condition: where,
 		Args:      args,
-	}
-	accounts, err = util.FindMany[[]ClientEntity](query)
-
-	return
-}
-
-func (ClientEntity) FindBy(where string, args ...any) (data ClientEntity, err error) {
-	query := &entity.Query{
-		Table:     "clientes",
-		Columns:   []string{"*"},
-		Condition: where,
-		Args:      args,
-	}
-
-	data, err = util.FindBy[ClientEntity](query)
+	})
 
 	return
 }
