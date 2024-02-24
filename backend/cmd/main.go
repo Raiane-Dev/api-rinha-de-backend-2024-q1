@@ -1,14 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"rinha_api/backend/config"
 	"rinha_api/backend/httpd/controller"
 
+	"net/http"
 	_ "net/http/pprof"
-	"runtime/pprof"
 
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
@@ -33,15 +32,6 @@ func init() {
 }
 
 func main() {
-	defer func() {
-		f, _ := os.Create("profile.pprof")
-		defer f.Close()
-		pprof.WriteHeapProfile(f)
-
-		if r := recover(); r != nil {
-			fmt.Println("Recovered in f", r)
-		}
-	}()
 
 	go func() {
 		select {
@@ -64,11 +54,11 @@ func main() {
 
 	}()
 
-	// if os.Getenv("DEBUG") == "debug" {
-	// go func() {
-	// log.Println(http.ListenAndServe("localhost:6060", nil))
-	// }()
-	// }
+	if os.Getenv("DEBUG") == "debug" {
+		go func() {
+			log.Println(http.ListenAndServe("localhost:6060", nil))
+		}()
+	}
 
 	r := router.New()
 	r.POST("/clientes/{id}/transacoes", controller.SendTransaction)

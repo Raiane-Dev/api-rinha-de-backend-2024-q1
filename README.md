@@ -18,6 +18,9 @@ docker-compose -f docker-compose.dev.yml up -d --build
 docker exec -it app bash
 ```
 
+## Results
+<img align="center" height="150" width="150" src="https://github.com/Raiane-Dev/rinha-de-backend-2024-q1/result.png">
+
 ## Meta
 
 Raiane Arcaro Daros – [@MyTwitter](https://twitter.com/RaianeDev) – raiane.dev@gmail.com
