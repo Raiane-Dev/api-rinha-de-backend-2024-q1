@@ -19,7 +19,7 @@ docker exec -it app bash
 ```
 
 ## Results
-<img align="center" height="150" width="150" src="https://github.com/Raiane-Dev/rinha-de-backend-2024-q1/result.png">
+![Result](./result.png)
 
 ## Meta
 
