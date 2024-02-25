@@ -16,11 +16,11 @@ func FindBy[T any](query entity.Query) (data T, err error) {
 		query.Condition,
 	)
 
-	config.ReaderDB.Get(
-		&data,
-		sql,
-		query.Args[:]...,
-	)
+	smtp, err := config.ReaderDB.Preparex(sql)
+	if err != nil {
+		return
+	}
+	smtp.Get(&data, query.Args[:]...)
 
 	return
 }
@@ -34,12 +34,11 @@ func FindMany[T any](query entity.Query) (data T, err error) {
 		query.Condition,
 	)
 
-	err = config.ReaderDB.Select(
-		&data,
-		sql,
-		query.Args[:]...,
-	)
-
+	smtp, err := config.ReaderDB.Preparex(sql)
+	if err != nil {
+		return
+	}
+	smtp.Select(&data, query.Args[:]...)
 	return
 }
 
@@ -65,6 +64,7 @@ func Insert(query entity.Query) (res sql.Result, err error) {
 }
 
 func Update(query entity.Query) (res sql.Result, err error) {
+
 	tx, err := config.WriterDB.Beginx()
 	defer tx.Rollback()
 

@@ -5,6 +5,7 @@ import (
 	"os"
 	"rinha_api/backend/config"
 	"rinha_api/backend/httpd/controller"
+	"runtime"
 
 	"net/http"
 	_ "net/http/pprof"
@@ -28,6 +29,7 @@ func init() {
 		log.Fatalf("err connect db %s", err.Error())
 	}
 
+	runtime.GOMAXPROCS(10)
 	config.ExecMigration()
 }
 
@@ -35,10 +37,10 @@ func main() {
 
 	go func() {
 		select {
-		case err := <-config.ErrWriterDB:
 
+		case err := <-config.ErrWriterDB:
 			log.Println("connection refused for instance WriterDB", err)
-			config.WriterDB.Exec("VACUUM;")
+			config.ReaderDB.Exec("VACUUM;")
 			config.WriterDB.Close()
 			config.WriterDB, err = config.ConnectInstance()
 			log.Printf("retry connection, err: %s", err)

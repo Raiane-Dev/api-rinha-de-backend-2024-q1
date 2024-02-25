@@ -11,6 +11,7 @@ type (
 )
 
 func (data TransactionEntity) Create() (err error) {
+
 	_, err = util.Insert(entity.Query{
 		Table:   "transacoes",
 		Columns: "tipo, cliente_id, valor, descricao",
@@ -21,8 +22,8 @@ func (data TransactionEntity) Create() (err error) {
 	return
 }
 
-func FindManyTransactions(where string, args ...any) (accounts []TransactionEntity, err error) {
-	accounts, err = util.FindMany[[]TransactionEntity](entity.Query{
+func FindManyTransactions(where string, args ...any) (accounts []map[string]string) {
+	accounts, _ = util.FindMany[[]map[string]string](entity.Query{
 		Table:     "transacoes",
 		Columns:   "*",
 		Condition: where,

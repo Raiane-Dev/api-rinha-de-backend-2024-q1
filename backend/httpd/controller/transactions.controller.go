@@ -18,12 +18,11 @@ var (
 )
 
 func SendTransaction(ctx *fasthttp.RequestCtx) {
+
 	var (
-		// mu               sync.Mutex
-		// wg               sync.WaitGroup
 		transactionInput input.TransactionInput
 	)
-	// wg.Add(1)
+
 	if err := json.Unmarshal(ctx.PostBody(), &transactionInput); err != nil {
 		log.Printf("invalid json body %+v | err %+v", transactionInput, err)
 		ctx.SetStatusCode(http.StatusBadRequest)
@@ -55,15 +54,11 @@ func SendTransaction(ctx *fasthttp.RequestCtx) {
 
 	client.Balance = client.Balance + transactionInput.Value
 	newTransaction := model.TransactionEntity{
+		ClientID:    client.ID,
 		Type:        transactionInput.Type,
 		Value:       transactionInput.Value,
 		Description: transactionInput.Description,
 	}
-
-	// go func() {
-	// mu.Lock()
-	// defer mu.Unlock()
-	// defer wg.Done()
 
 	if err := newTransaction.Create(); err != nil {
 		log.Println("not create transaction", err)
@@ -79,9 +74,6 @@ func SendTransaction(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	// }()
-
-	// wg.Wait()
 	resp_json, _ := json.Marshal(output.TransactionOutput{
 		Limit:   client.Limit,
 		Balance: client.Balance,
