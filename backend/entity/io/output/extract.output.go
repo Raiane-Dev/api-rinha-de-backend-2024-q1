@@ -1,8 +1,10 @@
 package output
 
-type ExtractOutput[T any] struct {
-	Balance           Balance `json:"saldo"`
-	LatestTransaction []T     `json:"ultimas_transacoes"`
+import "encoding/json"
+
+type ExtractOutput struct {
+	Balance           Balance         `json:"saldo"`
+	LatestTransaction json.RawMessage `json:"ultimas_transacoes"`
 }
 
 type Balance struct {

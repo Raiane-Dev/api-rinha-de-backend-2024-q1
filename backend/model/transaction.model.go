@@ -1,6 +1,7 @@
 package model
 
 import (
+	"log"
 	"rinha_api/backend/entity"
 	"rinha_api/backend/entity/schema"
 	"rinha_api/backend/util"
@@ -22,13 +23,23 @@ func (data TransactionEntity) Create() (err error) {
 	return
 }
 
-func FindManyTransactions(where string, args ...any) (accounts []map[string]string) {
-	accounts, _ = util.FindMany[[]map[string]string](entity.Query{
-		Table:     "transacoes",
-		Columns:   "*",
+func FindManyTransactions(where string, args ...any) (transactions []string) {
+	transactions, err := util.FindMany[[]string](entity.Query{
+		Table: "transacoes",
+		Columns: `json_group_array( 
+			json_object(
+			'tipo', tipo, 
+			'valor', valor,
+			'realizado_em', realizado_em ,
+			'descricao', descricao
+			)
+		)`,
 		Condition: where,
 		Args:      args,
 	})
+	if err != nil {
+		log.Println("err read db", err)
+	}
 
 	return
 }

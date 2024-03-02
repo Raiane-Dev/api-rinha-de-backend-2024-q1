@@ -37,6 +37,22 @@ func ExecMigration() (err error) {
 		return
 	}
 
+	WriterDB.Exec(`
+	PRAGMA automatic_index = ON;
+	PRAGMA cache_size = 32768;
+	PRAGMA cache_spill = OFF;
+	PRAGMA foreign_keys = ON;
+	PRAGMA journal_size_limit = 67110000;
+	PRAGMA locking_mode = NORMAL;
+	PRAGMA page_size = 4096;
+	PRAGMA recursive_triggers = ON;
+	PRAGMA secure_delete = ON;
+	PRAGMA synchronous = NORMAL;
+	PRAGMA temp_store = MEMORY;
+	PRAGMA journal_mode = WAL;
+	PRAGMA wal_autocheckpoint = 16384;
+	`)
+
 	for _, file := range files {
 		if !file.IsDir() {
 			filePath := filepath.Join(dir, file.Name())

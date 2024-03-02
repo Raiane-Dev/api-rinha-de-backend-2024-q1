@@ -6,4 +6,5 @@ type Query struct {
 	Condition string
 	Args      []any
 	Values    string
+	RawQuery  string
 }
